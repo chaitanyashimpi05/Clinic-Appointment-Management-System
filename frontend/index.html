@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Appointment Management System</title>
+    <!-- Custom Glassmorphism Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons Library for Premium Vector Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- Toast Notifications Mount Point -->
+    <div id="toast-container"></div>
+
+    <!-- 1. AUTHENTICATION MODULE (LOGIN / REGISTRATION) -->
+    <div id="auth-view" class="auth-wrapper fade-in">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>CareSync Clinic</h1>
+                <p>Appointment Booking & Schedule Portal</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+                <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="name@example.com" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-block">
+                    <i data-lucide="log-in"></i> Sign In
+                </button>
+            </form>
+
+            <!-- Registration Form -->
+            <form id="form-register" onsubmit="handleRegister(event)" style="display: none;">
+                <div class="form-group">
+                    <label for="reg-name">Full Name</label>
+                    <input type="text" id="reg-name" class="form-control" placeholder="John Doe" minlength="2">
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email Address</label>
+                    <input type="email" id="reg-email" class="form-control" placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" class="form-control" placeholder="Min. 8 characters" minlength="8">
+                </div>
+                <div class="form-group">
+                    <label for="reg-role">Register As</label>
+                    <select id="reg-role" class="form-control">
+                        <option value="Patient">Patient</option>
+                        <option value="Doctor">Doctor</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-block">
+                    <i data-lucide="user-plus"></i> Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. MAIN APPLICATION CONSOLE LAYOUT -->
+    <div id="app-view" class="app-container" style="display: none;">
+        <!-- Persistent Navigation Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">C</div>
+                <div class="sidebar-title">
+                    <h2>CareSync</h2>
+                    <p>Clinic Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <!-- Navigation Tabs - Dynamically shown/hidden based on active role -->
+                
+                <!-- Patient Menu Items -->
+                <div class="patient-menu" style="display: none; width: 100%;">
+                    <a onclick="showTab('patient-appointments')" id="nav-patient-appointments" class="menu-item active">
+                        <i data-lucide="calendar"></i> <span>My Appointments</span>
+                    </a>
+                    <a onclick="showTab('patient-book')" id="nav-patient-book" class="menu-item">
+                        <i data-lucide="search"></i> <span>Book Appointment</span>
+                    </a>
+                    <a onclick="showTab('patient-profile')" id="nav-patient-profile" class="menu-item">
+                        <i data-lucide="user"></i> <span>My Profile</span>
+                    </a>
+                </div>
+
+                <!-- Doctor Menu Items -->
+                <div class="doctor-menu" style="display: none; width: 100%;">
+                    <a onclick="showTab('doctor-schedule')" id="nav-doctor-schedule" class="menu-item active">
+                        <i data-lucide="activity"></i> <span>My Schedule</span>
+                    </a>
+                    <a onclick="showTab('doctor-profile')" id="nav-doctor-profile" class="menu-item">
+                        <i data-lucide="sliders"></i> <span>My Profile & Hours</span>
+                    </a>
+                </div>
+
+                <!-- Admin Menu Items -->
+                <div class="admin-menu" style="display: none; width: 100%;">
+                    <a onclick="showTab('admin-users')" id="nav-admin-users" class="menu-item active">
+                        <i data-lucide="users"></i> <span>System Users</span>
+                    </a>
+                    <a onclick="showTab('admin-appointments')" id="nav-admin-appointments" class="menu-item">
+                        <i data-lucide="list"></i> <span>All Appointments</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-widget">
+                    <div id="user-avatar" class="avatar">U</div>
+                    <div class="user-info">
+                        <div id="user-display-name" class="user-name">Loading...</div>
+                        <div id="user-display-role" class="user-role">Role</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-secondary btn-block">
+                    <i data-lucide="log-out"></i> <span>Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Area -->
+        <main class="main-content">
+            
+            <!-- A. PATIENT TABS -->
+            <!-- Tab: Patient Appointments -->
+            <div id="tab-patient-appointments" class="tab-view fade-in">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>My Appointments</h1>
+                        <p>Track your upcoming doctor consultations and history.</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-header-row">
+                        <h3 class="card-title">Appointments List</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Doctor Name</th>
+                                    <th>Date</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patient-appointments-list">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Patient Doctor Listings and Booking -->
+            <div id="tab-patient-book" class="tab-view fade-in" style="display: none;">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>Book an Appointment</h1>
+                        <p>Find specialized clinic doctors and secure your time slot.</p>
+                    </div>
+                </div>
+                <div id="doctor-cards-container" class="doctor-cards-grid">
+                    <!-- JS Populated -->
+                </div>
+            </div>
+
+            <!-- Tab: Patient Profile Info -->
+            <div id="tab-patient-profile" class="tab-view fade-in" style="display: none;">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>My Patient Profile</h1>
+                        <p>Keep your basic demographic and medical records up to date.</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="card-title" style="margin-bottom: 25px;">Profile Details</h3>
+                    <form onsubmit="handlePatientProfileUpdate(event)">
+                        <div class="form-group">
+                            <label for="pat-dob">Date of Birth</label>
+                            <input type="date" id="pat-dob" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="pat-gender">Gender</label>
+                            <select id="pat-gender" class="form-control">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pat-phone">Phone Number</label>
+                            <input type="text" id="pat-phone" class="form-control" placeholder="+1-555-0100">
+                        </div>
+                        <div class="form-group">
+                            <label for="pat-history">Medical History / Chronic Conditions</label>
+                            <textarea id="pat-history" class="form-control" rows="4" placeholder="Mention any known allergies, chronic conditions, or ongoing treatments..."></textarea>
+                        </div>
+                        <button type="submit" class="btn"><i data-lucide="save"></i> Save Changes</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- B. DOCTOR TABS -->
+            <!-- Tab: Doctor Schedule -->
+            <div id="tab-doctor-schedule" class="tab-view fade-in" style="display: none;">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>Consultations Schedule</h1>
+                        <p>Review patient appointments scheduled with you today.</p>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Appointments</span>
+                        <span id="doc-stat-total" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Pending Reviews</span>
+                        <span id="doc-stat-scheduled" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="card-title" style="margin-bottom: 25px;">My Schedule</h3>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient Name</th>
+                                    <th>Date</th>
+                                    <th>Time Slot</th>
+                                    <th>Medical History / Info</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="doctor-appointments-list">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Doctor Profile Configuration -->
+            <div id="tab-doctor-profile" class="tab-view fade-in" style="display: none;">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>My Professional Settings</h1>
+                        <p>Manage your specialization info, consultation rate, and hours of availability.</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="card-title" style="margin-bottom: 25px;">Availability & Details</h3>
+                    <form onsubmit="handleDoctorProfileUpdate(event)">
+                        <div class="form-group">
+                            <label for="doc-spec">Specialization</label>
+                            <input type="text" id="doc-spec" class="form-control" placeholder="E.g., Pediatrics, Cardiology" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="doc-fee">Consultation Fee ($)</label>
+                            <input type="number" id="doc-fee" class="form-control" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="doc-bio">About Me / Biography</label>
+                            <textarea id="doc-bio" class="form-control" rows="3" placeholder="Brief description for patients..."></textarea>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label for="doc-start">Working Hours Start</label>
+                                <input type="time" id="doc-start" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-end">Working Hours End</label>
+                                <input type="time" id="doc-end" class="form-control" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn"><i data-lucide="save"></i> Update Profile</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- C. ADMIN TABS -->
+            <!-- Tab: Admin Users Management -->
+            <div id="tab-admin-users" class="tab-view fade-in" style="display: none;">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>System User Management</h1>
+                        <p>Review registered clinic accounts and manage active profiles.</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="card-title" style="margin-bottom: 25px;">Clinic Registrations</h3>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>System Role</th>
+                                    <th>Active Status</th>
+                                    <th>Created Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-list">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Admin Appointments Dashboard -->
+            <div id="tab-admin-appointments" class="tab-view fade-in" style="display: none;">
+                <div class="view-header">
+                    <div class="view-title">
+                        <h1>All Booked Appointments</h1>
+                        <p>Complete logs of all appointments in CareSync clinic database.</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="card-title" style="margin-bottom: 25px;">Clinic Scheduling Book</h3>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient UUID</th>
+                                    <th>Doctor UUID</th>
+                                    <th>Date</th>
+                                    <th>Time Window</th>
+                                    <th>Status</th>
+                                    <th>Admin Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-appointments-list">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 3. BOOKING SCHEDULER OVERLAY MODAL (PATIENT ACTIONS) -->
+    <div id="booking-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-doctor-name">Book Consultation</h2>
+                <button onclick="closeBookingModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modal-doctor-id">
+                <div class="form-group">
+                    <label for="book-date">Choose Date</label>
+                    <input type="date" id="book-date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="book-time">Choose Start Time</label>
+                    <input type="time" id="book-time" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="book-notes">Describe Symptoms (Optional)</label>
+                    <textarea id="book-notes" class="form-control" rows="3" placeholder="I have a headache, regular checkup, etc."></textarea>
+                </div>
+                <div id="modal-avail-note" style="font-size: 0.8rem; color: var(--color-primary); margin-top: 10px;">
+                    Doctor's availability: 09:00 - 17:00
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeBookingModal()" class="btn btn-secondary">Cancel</button>
+                <button onclick="submitBooking()" class="btn"><i data-lucide="check"></i> Confirm Appointment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Frontend Single Page Controller Logic -->
+    <script src="js/app.js"></script>
+</body>
+</html>
