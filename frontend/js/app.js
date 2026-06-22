@@ -1,5 +1,5 @@
 // CareSync Clinic SPA Application Controller
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://clinic-appointment-management-system-xqwi.onrender.com";
 
 // Client State
 let token = localStorage.getItem("token") || "";
@@ -19,13 +19,13 @@ function showToast(message, type = "success") {
     const container = document.getElementById("toast-container");
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
-    
+
     let iconName = type === "success" ? "check-circle" : "alert-circle";
     toast.innerHTML = `
         <i data-lucide="${iconName}"></i>
         <span>${message}</span>
     `;
-    
+
     container.appendChild(toast);
     lucide.createIcons(); // Initialize the new icon
 
@@ -44,7 +44,7 @@ function showAuth() {
     localStorage.removeItem("token");
     token = "";
     currentUser = null;
-    
+
     document.getElementById("app-view").style.display = "none";
     document.getElementById("auth-view").style.display = "flex";
     switchAuthTab("login");
@@ -60,11 +60,11 @@ async function verifySession() {
                 "Authorization": `Bearer ${token}`
             }
         });
-        
+
         if (!res.ok) {
             throw new Error("Session expired");
         }
-        
+
         currentUser = await res.json();
         showDashboard();
     } catch (err) {
@@ -154,7 +154,7 @@ async function handleLogin(event) {
         // Save token
         token = data.access_token;
         localStorage.setItem("token", token);
-        
+
         // Fetch current user details
         await verifySession();
         showToast(`Welcome back, ${currentUser.full_name}!`);
@@ -214,7 +214,7 @@ function showTab(tabName) {
     // Update active class in sidebar menu
     const menuItems = document.querySelectorAll(".menu-item");
     menuItems.forEach(item => item.classList.remove("active"));
-    
+
     const navItem = document.getElementById(`nav-${tabName}`);
     if (navItem) navItem.classList.add("active");
 
@@ -234,7 +234,7 @@ function showTab(tabName) {
     } else if (tabName === "admin-appointments") {
         fetchAdminAppointments();
     }
-    
+
     lucide.createIcons();
 }
 
@@ -317,13 +317,13 @@ async function fetchDoctorsList() {
         data.forEach(doc => {
             const card = document.createElement("div");
             card.className = "doctor-item-card fade-in";
-            
+
             // Format time display
             const formatTime = (tStr) => {
                 const parts = tStr.split(":");
                 return `${parts[0]}:${parts[1]}`;
             };
-            
+
             card.innerHTML = `
                 <div>
                     <div class="doctor-info-header" style="margin-bottom: 12px;">
@@ -364,13 +364,13 @@ function openBookingModal(doctorId, doctorName, start, end) {
     document.getElementById("modal-doctor-id").value = doctorId;
     document.getElementById("modal-doctor-name").innerText = `Book Consultation with ${doctorName}`;
     document.getElementById("modal-avail-note").innerText = `Doctor availability hours: ${start} - ${end}`;
-    
+
     // Set default booking date as tomorrow
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     document.getElementById("book-date").value = tomorrow.toISOString().split("T")[0];
     document.getElementById("book-time").value = "10:00";
-    
+
     document.getElementById("booking-modal").classList.add("active");
 }
 
@@ -438,10 +438,10 @@ async function fetchPatientAppointments() {
 
         data.forEach(appt => {
             const row = document.createElement("tr");
-            
+
             const formatTime = (tStr) => tStr.split(":").slice(0, 2).join(":");
             const docName = docMap[appt.doctor_id] || "Doctor";
-            
+
             let statusClass = appt.status.toLowerCase();
             let actionBtn = "";
             if (appt.status === "Scheduled") {
@@ -510,8 +510,8 @@ async function fetchDoctorProfile() {
         document.getElementById("doc-spec").value = data.specialization || "";
         document.getElementById("doc-fee").value = data.consultation_fee || 0;
         document.getElementById("doc-bio").value = data.bio || "";
-        document.getElementById("doc-start").value = data.availability_start.split(":").slice(0,2).join(":") || "09:00";
-        document.getElementById("doc-end").value = data.availability_end.split(":").slice(0,2).join(":") || "17:00";
+        document.getElementById("doc-start").value = data.availability_start.split(":").slice(0, 2).join(":") || "09:00";
+        document.getElementById("doc-end").value = data.availability_end.split(":").slice(0, 2).join(":") || "17:00";
     } catch (err) {
         showToast(err.message, "error");
     }
@@ -577,13 +577,13 @@ async function fetchDoctorSchedule() {
 
         data.forEach(appt => {
             const row = document.createElement("tr");
-            
+
             const formatTime = (tStr) => tStr.split(":").slice(0, 2).join(":");
             const patientMeta = patMap[appt.patient_id] || { name: "Patient Profile", history: "" };
-            
+
             let statusClass = appt.status.toLowerCase();
             let actionBtn = "";
-            
+
             if (appt.status === "Scheduled") {
                 actionBtn = `
                     <div style="display: flex; gap: 8px;">
@@ -658,13 +658,13 @@ async function fetchAdminUsers() {
 
         data.forEach(usr => {
             const row = document.createElement("tr");
-            
+
             // Format Created Date
             const createdDate = new Date(usr.created_at).toLocaleDateString();
-            
+
             // Disable delete button for the current active admin to prevent lockouts
             const isSelf = usr.id === currentUser.id;
-            const deleteBtn = isSelf 
+            const deleteBtn = isSelf
                 ? `<span style="color: var(--text-muted); font-size: 0.85rem;">(Active Admin)</span>`
                 : `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem; box-shadow: none;" onclick="deleteUser('${usr.id}', '${usr.full_name}')"><i data-lucide="trash-2"></i> Delete</button>`;
 
@@ -728,7 +728,7 @@ async function fetchAdminAppointments() {
             const row = document.createElement("tr");
             const formatTime = (tStr) => tStr.split(":").slice(0, 2).join(":");
             let statusClass = appt.status.toLowerCase();
-            
+
             row.innerHTML = `
                 <td style="font-size: 0.8rem; color: var(--text-secondary);">${appt.patient_id}</td>
                 <td style="font-size: 0.8rem; color: var(--text-secondary);">${appt.doctor_id}</td>
