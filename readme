@@ -1,0 +1,11 @@
+# Clinic Appointment Management System
+
+A secure clinic appointment management system built with FastAPI and React.
+
+## Live Demo
+
+Frontend:
+https://clinic-frontend.vercel.app
+
+Backend API:
+https://clinic-api.onrender.com
